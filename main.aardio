@@ -1,0 +1,82 @@
+import win.ui;
+/*DSG{{*/
+mainForm = win.form(text="PDFeditor";right=959;bottom=591)
+mainForm.add(
+webview={cls="custom";text="自定义控件";left=0;top=4;right=958;bottom=593;ah=1;aw=1;z=1}
+)
+/*}}*/
+
+var PDFpath="";
+//后端
+import py3;
+import py3.export.aardio;
+
+
+import py3.pip;
+py3.pip.setIndexUrl("aliyun");//chinese
+py3.pip("install","pymupdf");
+
+
+
+var MuPDF = py3.import("MyMuPDF");
+
+//var txt=MuPDF.testTextTest();
+//win.msgbox(txt);
+
+function LoadPDF()
+{
+	dealt= {
+    	["\"] = "/";
+	};
+	PDFpath = string.replace(PDFpath,".|:",dealt)
+	//win.msgbox(PDFpath,"PDFpath");
+	MuPDF.LoadPDF(PDFpath);
+	//win.msgbox(MuPDF.doc,"test");
+	return true;
+}
+
+//前端
+
+import web.view;
+import wsock.tcp.simpleHttpServer; 
+
+var theView=web.view(mainForm.webview); 
+
+var url;
+if (_STUDIO_INVOKED) {
+	import web.rest.client;
+	url = "http://localhost:5188/";
+} else {
+	url = "/web/index.html";
+}
+
+function SelectFile()
+{
+	import fsys.dlg;
+	PDFpath=fsys.dlg.open("PDF(*.pdf)|*.pdf|","OPEN",NULL,NULL);
+	return PDFpath;
+}
+
+theView.external = {
+	OpenPDF=function()
+	{
+		if(PDFpath=="") SelectFile();
+		return LoadPDF();
+	}
+	GetSVG=function(pagenum)
+	{
+		//win.msgbox(MuPDF.GetPage(pagenum).toString());
+		return MuPDF.GetPage(pagenum).toString();
+	}
+}
+
+theView.go(url);
+
+/*
+MuPDF.LoadPDF("C:/Users/Dev C/Desktop/test.pdf");
+win.msgbox(MuPDF.doc,"MuPDF doc");
+win.msgbox(MuPDF.GetPage(1));
+*/
+
+mainForm.show();
+return win.loopMessage();
